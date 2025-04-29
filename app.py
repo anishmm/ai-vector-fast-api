@@ -200,20 +200,27 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
 # Query endpoint
 @app.post("/query")
 async def query(request: QueryRequest):
-    if not llm or settings.db_type not in databases:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="LLM or database not initialized."
-        )
+    try:
+        if not llm or settings.db_type not in databases:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="LLM or database not initialized."
+            )
 
-    db = databases.get(settings.db_type)
-    answer, relevant_docs, token_usage = query_database(db, request.question)
-    
-    return {
-        "answer": answer,
-        "relevant_documents": [doc.page_content for doc in relevant_docs],
-        "token_usage": token_usage
-    }
+        db = databases.get(settings.db_type)
+        answer, relevant_docs, token_usage = query_database(db, request.question)
+        
+        return {
+            "answer": answer,
+            "relevant_documents": [doc.page_content for doc in relevant_docs],
+            "token_usage": token_usage
+        }
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return {
+            "answer": 'Error',
+            "token_usage": ''
+        }
 
 # Startup event to initialize models
 @app.on_event("startup")
