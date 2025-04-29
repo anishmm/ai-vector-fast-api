@@ -10,3 +10,5 @@ python-dotenv
 accelerate
 pypdf
 fastapi
+python-multipart
+uvicorn
