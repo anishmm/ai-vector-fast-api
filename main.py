@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
     global embeddings, llm, databases
     try:
         # Initialize embeddings
-        # embeddings = HuggingFaceEmbeddings(model_name=settings.embedding_model)
+        embeddings = HuggingFaceEmbeddings(model_name=settings.embedding_model)
         print("Embeddings initialized successfully.")
         # Initialize LLM
         if not settings.groq_api_key:
