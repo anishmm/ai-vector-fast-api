@@ -1,6 +1,5 @@
 from typing import Optional
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 import os
 import tempfile
 from typing import List, Dict, Any
@@ -49,8 +48,7 @@ llm = None
 databases: Dict[str, FAISS] = {}
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def lifespan(app: FastAPI):
     print("Application is starting up...")
     global embeddings, llm, databases
     try:
