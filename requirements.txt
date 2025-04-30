@@ -11,3 +11,4 @@ pypdf
 python-dotenv
 pydantic-settings
 hf_xet
+python-multipart
