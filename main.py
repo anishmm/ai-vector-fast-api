@@ -55,28 +55,28 @@ async def lifespan(app: FastAPI):
     global embeddings, llm, databases
     try:
         # Initialize embeddings
-        embeddings = HuggingFaceEmbeddings(model_name=settings.embedding_model)
+        # embeddings = HuggingFaceEmbeddings(model_name=settings.embedding_model)
         print("Embeddings initialized successfully.")
 
-        # Initialize LLM
-        if not settings.groq_api_key:
-            raise ValueError("GROQ_API_KEY not found.")
-        llm = ChatGroq(
-            api_key=settings.groq_api_key,
-            model_name="mistral-saba-24b",
-            temperature=0
-        )
-        print("LLM initialized successfully.")
+        # # Initialize LLM
+        # if not settings.groq_api_key:
+        #     raise ValueError("GROQ_API_KEY not found.")
+        # llm = ChatGroq(
+        #     api_key=settings.groq_api_key,
+        #     model_name="mistral-saba-24b",
+        #     temperature=0
+        # )
+        # print("LLM initialized successfully.")
 
-        # Load existing FAISS index if available
-        if os.path.exists(settings.store_path):
-            print(f"Loading vector store from {settings.store_path}")
-            databases[settings.db_type] = FAISS.load_local(
-                settings.store_path,
-                embeddings,
-                allow_dangerous_deserialization=True
-            )
-        return True
+        # # Load existing FAISS index if available
+        # if os.path.exists(settings.store_path):
+        #     print(f"Loading vector store from {settings.store_path}")
+        #     databases[settings.db_type] = FAISS.load_local(
+        #         settings.store_path,
+        #         embeddings,
+        #         allow_dangerous_deserialization=True
+        #     )
+        # return True
     except Exception as e:
         print(f"Initialization error: {e}")
         embeddings = None
