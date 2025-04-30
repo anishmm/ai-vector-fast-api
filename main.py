@@ -83,8 +83,10 @@ def lifespan(app: FastAPI):
 
  
 # Pass the lifespan handler to FastAPI
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
+app.add_event_handler('startup', lambda: print("API startup"))
+app.add_event_handler('shutdown', lambda: print("API shutdown"))
 
 # Startup event to initialize models
 # @app.on_event("startup")
