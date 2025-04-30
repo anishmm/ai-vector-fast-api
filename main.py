@@ -41,17 +41,7 @@ settings = Settings()
 
 
 
-# Define the lifespan handler
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup logic
-    print("Application is starting up...")
-    yield  # Application runs here
-    # Shutdown logic
-    print("Application is shutting down...")
 
-# Pass the lifespan handler to FastAPI
-app = FastAPI(lifespan=lifespan)
 
 # Global state (for simplicity; consider dependency injection for production)
 embeddings = None
@@ -59,8 +49,9 @@ llm = None
 databases: Dict[str, FAISS] = {}
 
 
-# Initialize models
-def initialize_models():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Application is starting up...")
     global embeddings, llm, databases
     try:
         # Initialize embeddings
@@ -91,6 +82,10 @@ def initialize_models():
         embeddings = None
         llm = None
         return False
+
+ 
+# Pass the lifespan handler to FastAPI
+app = FastAPI(lifespan=lifespan)
 
 
 # Startup event to initialize models
