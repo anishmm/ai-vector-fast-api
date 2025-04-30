@@ -1,14 +1,1 @@
-# External libraries
-fastapi
-uvicorn
-pydantic
-langchain
-langchain-community
-langchain-huggingface
-langchain-groq
-faiss-cpu
-pypdf
-python-dotenv
-pydantic-settings
-hf_xet
-python-multipart
+fastapi[all]
