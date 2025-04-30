@@ -32,20 +32,17 @@ embeddings = None
 llm = None
 databases: Dict[str, FAISS] = {}
 
-def initialize_models(app: FastAPI):
+@asynccontextmanager
+async def initialize_models(app: FastAPI):
     global embeddings, llm, databases
     try:
         logger.info('START')
-        #logger.info("Embeddings initialized successfully.")
-        
-        logger.info('END')
-
-        return True
+        yield
+        logger.info('END')       
     except Exception as e:
         print(f"Initialization error: {e}")
         embeddings = None
         llm = None
-        return False
 
 app = FastAPI(lifespan=initialize_models)
 
