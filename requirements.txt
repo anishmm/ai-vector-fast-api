@@ -1,14 +1,13 @@
-fastapi==0.115.0
-python-multipart==0.0.12
-pydantic==2.9.2
-pydantic-settings==2.5.2
-langchain==0.3.1
-langchain-community==0.3.1
-langchain-huggingface==0.1.0
-langchain-groq==0.2.0
-faiss-cpu==1.9.0
-PyPDF2==3.0.1
-python-dotenv==1.0.1
-groq==0.11.0
-huggingface_hub==0.25.1
-hf_xet==1.0.5
+# External libraries
+fastapi
+uvicorn
+pydantic
+langchain
+langchain-community
+langchain-huggingface
+langchain-groq
+faiss-cpu
+pypdf
+python-dotenv
+pydantic-settings
+hf_xet
