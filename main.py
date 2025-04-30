@@ -85,14 +85,12 @@ def lifespan(app: FastAPI):
 # Pass the lifespan handler to FastAPI
 app = FastAPI()
 
-app.add_event_handler('startup', lambda: print("API startup"))
-app.add_event_handler('shutdown', lambda: print("API shutdown"))
-
+ 
 # Startup event to initialize models
-# @app.on_event("startup")
-# async def startup_event():
+@app.on_event("startup")
+async def startup_event():
 #     if not initialize_models():
-#         print("Failed to initialize models. Check configuration and dependencies.")
+    print("Failed to initialize models. Check configuration and dependencies.")
 
 
 @app.get("/")
