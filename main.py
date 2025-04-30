@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+import logging
 import os
 import tempfile
 from typing import List, Dict, Any
@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
 
 
 # Configuration class
@@ -80,6 +81,7 @@ async def lifespan(app: FastAPI):
         return True
     except Exception as e:
         print(f"Initialization error: {e}")
+        logger.error(e)
         embeddings = None
         llm = None
         return False
@@ -87,11 +89,11 @@ async def lifespan(app: FastAPI):
  
 # Pass the lifespan handler to FastAPI
 app = FastAPI(lifespan=lifespan)
- 
+logger = logging.getLogger('uvicorn.error')
 
 @app.get("/")
 async def root():
-    print(GROQ_API_KEY)
+    logger.info('Defult /')
     return {"message": "Hello World"}
 
 @app.get("/items/{item_id}")
@@ -101,6 +103,7 @@ def read_item(item_id: int, q: Optional[str] = None):
 # Health check endpoint
 @app.get("/health")
 async def health_check():
+    logger.info('health /')
     return {
         "status": "healthy" if embeddings and llm else "unhealthy",
         "embeddings_initialized": embeddings is not None,
