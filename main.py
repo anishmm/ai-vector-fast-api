@@ -32,7 +32,7 @@ class Settings():
 # Pydantic model for query request
 class QueryRequest(BaseModel):
     question: str
-    
+
 # Load settings
 settings = Settings()
 
@@ -92,6 +92,7 @@ def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
             retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
             
             response = retrieval_chain.invoke({"input": question})
+            print(response)
 
             context_text = "\n".join([doc.page_content for doc in relevant_docs])
             prompt_text = retrieval_qa_prompt.format(context=context_text, input=question)
@@ -159,6 +160,6 @@ async def query(request: QueryRequest):
     except Exception as e:
         print(f"Error: {str(e)}")
         return {
-            "answer": 'Error',
+            "answer": f"Error: {str(e)}",
             "token_usage": ''
         }
