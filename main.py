@@ -29,6 +29,7 @@ class Settings():
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+
 # Pydantic model for query request
 class QueryRequest(BaseModel):
     question: str
@@ -163,3 +164,4 @@ async def query(request: QueryRequest):
             "answer": f"Error: {str(e)}",
             "token_usage": ''
         }
+    
