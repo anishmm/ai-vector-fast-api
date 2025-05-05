@@ -78,20 +78,24 @@ app = FastAPI(lifespan=initialize_models)
 # Query the database
 def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
     try:
+        print("11")
         retriever = db.as_retriever(
             search_type="similarity",
             search_kwargs={"k": 3}
         )
+        print("22")
         relevant_docs = retriever.get_relevant_documents(question)
-
+        print("333")
         if relevant_docs:
+            print("44")
             retrieval_qa_prompt = ChatPromptTemplate.from_messages([
                 ("system", "Answer concisely based on the provided context. If the context lacks sufficient information, say so."),
                 ("human", "Context: {context}\nQuestion: {input}\nAnswer:"),
             ])
+            print("55")
             combine_docs_chain = create_stuff_documents_chain(llm, retrieval_qa_prompt)
             retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
-            
+            print("66")
             response = retrieval_chain.invoke({"input": question})
             print(response)
 
