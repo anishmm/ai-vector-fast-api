@@ -7,6 +7,10 @@ from langchain_community.vectorstores.faiss import FAISS
 from dotenv import load_dotenv, find_dotenv
 from contextlib import asynccontextmanager
 from langchain_groq import ChatGroq
+from langchain.prompts import ChatPromptTemplate
+from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
 
 load_dotenv()
 
@@ -25,6 +29,10 @@ class Settings():
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+# Pydantic model for query request
+class QueryRequest(BaseModel):
+    question: str
+    
 # Load settings
 settings = Settings()
 
@@ -66,6 +74,47 @@ async def initialize_models(app: FastAPI):
 
 app = FastAPI(lifespan=initialize_models)
 
+# Query the database
+def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
+    try:
+        retriever = db.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": 3}
+        )
+        relevant_docs = retriever.get_relevant_documents(question)
+
+        if relevant_docs:
+            retrieval_qa_prompt = ChatPromptTemplate.from_messages([
+                ("system", "Answer concisely based on the provided context. If the context lacks sufficient information, say so."),
+                ("human", "Context: {context}\nQuestion: {input}\nAnswer:"),
+            ])
+            combine_docs_chain = create_stuff_documents_chain(llm, retrieval_qa_prompt)
+            retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
+            
+            response = retrieval_chain.invoke({"input": question})
+
+            context_text = "\n".join([doc.page_content for doc in relevant_docs])
+            prompt_text = retrieval_qa_prompt.format(context=context_text, input=question)
+            answer_text = response['answer']
+
+            # Rough token estimation
+            prompt_tokens = len(prompt_text) // 4
+            completion_tokens = len(answer_text) // 4
+            token_usage = {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": prompt_tokens + completion_tokens
+            }
+
+            return response['answer'], relevant_docs, token_usage
+        
+        return "No relevant information found in the documents.", [], {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Query error: {str(e)}"
+        )
+
 
 @app.get("/")
 async def root():
@@ -87,3 +136,29 @@ async def health_check():
         "llm_initialized": llm is not None,
         "database_initialized": settings.db_type in databases
     }
+
+
+# Query endpoint
+@app.post("/query")
+async def query(request: QueryRequest):
+    try:
+        if not llm or settings.db_type not in databases:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="LLM or database not initialized."
+            )
+
+        db = databases.get(settings.db_type)
+        answer, relevant_docs, token_usage = query_database(db, request.question)
+        
+        return {
+            "answer": answer,
+            "relevant_documents": [doc.page_content for doc in relevant_docs],
+            "token_usage": token_usage
+        }
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return {
+            "answer": 'Error',
+            "token_usage": ''
+        }
