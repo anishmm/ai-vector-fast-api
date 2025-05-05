@@ -46,7 +46,7 @@ databases: Dict[str, FAISS] = {}
 async def initialize_models(app: FastAPI):
     global embeddings, llm, databases
     try:
-        logger.info('START')
+        print('START initialize')
 
          # Initialize LLM
         if not settings.groq_api_key:
@@ -66,8 +66,8 @@ async def initialize_models(app: FastAPI):
                 embeddings,
                 allow_dangerous_deserialization=True
             )
-        yield
-        logger.info('END')       
+        print('END initialize')   
+        print(f" databases {databases[settings.db_type]}")    
     except Exception as e:
         print(f"Initialization error: {e}")
         embeddings = None
@@ -84,6 +84,7 @@ def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
             search_kwargs={"k": 3}
         )
         print("22")
+        print(retriever)
         relevant_docs = retriever.get_relevant_documents(question)
         print("333")
         if relevant_docs:
