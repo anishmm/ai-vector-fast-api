@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from langchain_community.vectorstores.faiss import FAISS
 from dotenv import load_dotenv, find_dotenv
 from contextlib import asynccontextmanager
+from langchain_groq import ChatGroq
 
 load_dotenv()
 
@@ -37,6 +38,25 @@ async def initialize_models(app: FastAPI):
     global embeddings, llm, databases
     try:
         logger.info('START')
+
+         # Initialize LLM
+        if not settings.groq_api_key:
+            raise ValueError("GROQ_API_KEY not found.")
+        llm = ChatGroq(
+            api_key=settings.groq_api_key,
+            model_name="mistral-saba-24b",
+            temperature=0
+        )
+        print("LLM initialized successfully.")
+
+        # Load existing FAISS index if available
+        if os.path.exists(settings.store_path):
+            print(f"Loading vector store from {settings.store_path}")
+            databases[settings.db_type] = FAISS.load_local(
+                settings.store_path,
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
         yield
         logger.info('END')       
     except Exception as e:
