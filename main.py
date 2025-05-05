@@ -79,12 +79,15 @@ app = FastAPI(lifespan=initialize_models)
 def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
     try:
         print("11")
+
         retriever = db.as_retriever(
             search_type="similarity",
             search_kwargs={"k": 3}
         )
+
         print("22")
         print(retriever)
+        
         relevant_docs = retriever.get_relevant_documents(question)
         print("333")
         if relevant_docs:
