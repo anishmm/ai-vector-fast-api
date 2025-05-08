@@ -11,6 +11,7 @@ from langchain.prompts import ChatPromptTemplate
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
+from contextlib import asynccontextmanager
 
 load_dotenv()
 
@@ -42,7 +43,8 @@ embeddings = None
 llm = None
 databases: Dict[str, FAISS] = {}
 
-def initialize_models(app: FastAPI):
+@asynccontextmanager
+async def initialize_models(app: FastAPI):
     global embeddings, llm, databases
     try:
         print('START initialize')
@@ -65,6 +67,7 @@ def initialize_models(app: FastAPI):
                 embeddings,
                 allow_dangerous_deserialization=True
             )
+        yield
         print('END initialize')   
         print(f" databases {databases[settings.db_type]}")    
     except Exception as e:
