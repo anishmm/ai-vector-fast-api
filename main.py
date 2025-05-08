@@ -12,6 +12,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from contextlib import asynccontextmanager
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 load_dotenv()
 
@@ -23,7 +24,7 @@ print(GROQ_API_KEY)
 class Settings():
     groq_api_key: str =GROQ_API_KEY
     embedding_model: str = "all-MiniLM-L6-v2"
-    store_path: str = "./tmp_pdf/pdf_store.faiss"
+    store_path: str = "./tmp_pdf/index.faiss"
     db_type: str = "support_collection"
 
     class Config:
@@ -49,6 +50,9 @@ async def initialize_models(app: FastAPI):
     try:
         print('START initialize')
 
+        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        
+
          # Initialize LLM
         if not settings.groq_api_key:
             raise ValueError("GROQ_API_KEY not found.")
@@ -67,9 +71,10 @@ async def initialize_models(app: FastAPI):
                 embeddings,
                 allow_dangerous_deserialization=True
             )
-        yield
+       
         print('END initialize')   
         print(f" databases {databases[settings.db_type]}")    
+        yield
     except Exception as e:
         print(f"Initialization error: {e}")
         embeddings = None
@@ -80,15 +85,19 @@ app = FastAPI(lifespan=initialize_models)
 # Query the database
 def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
     try:
-        print("11")
+        
+        print(f"db: {db}")
+
+        print(f"question: {question}")
 
         retriever = db.as_retriever(
             search_type="similarity",
             search_kwargs={"k": 3}
         )
 
-        print("22")
-        print(retriever)
+
+        print(f"retriever: {retriever}")
+ 
         
         relevant_docs = retriever.get_relevant_documents(question)
         print("333")
@@ -122,6 +131,7 @@ def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
         
         return "No relevant information found in the documents.", [], {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
     except Exception as e:
+        print(f"{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Query error: {str(e)}"
@@ -159,10 +169,10 @@ def query(request: QueryRequest):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="LLM or database not initialized."
             )
-
+        
         db = databases.get(settings.db_type)
         answer, relevant_docs, token_usage = query_database(db, request.question)
-        
+        print("3")
         return {
             "answer": answer,
             "relevant_documents": [doc.page_content for doc in relevant_docs],
