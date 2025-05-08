@@ -126,7 +126,7 @@ def query_database(db: FAISS, question: str) -> tuple[str, list, dict]:
 
 
 @app.get("/")
-async def root():
+def root():
     logger.info('GET /')
     return {"message": "Hello World"}
 
@@ -137,7 +137,7 @@ def read_item(item_id: int, q: Optional[str] = None):
 
 # Health check endpoint
 @app.get("/health")
-async def health_check():
+def health_check():
     logger.info('health /')
     return {
         "status": "healthy" if embeddings and llm else "unhealthy",
@@ -149,7 +149,7 @@ async def health_check():
 
 # Query endpoint
 @app.post("/query")
-async def query(request: QueryRequest):
+def query(request: QueryRequest):
     try:
         if not llm or settings.db_type not in databases:
             raise HTTPException(
