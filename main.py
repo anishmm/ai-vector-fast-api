@@ -42,8 +42,7 @@ embeddings = None
 llm = None
 databases: Dict[str, FAISS] = {}
 
-@asynccontextmanager
-async def initialize_models(app: FastAPI):
+def initialize_models(app: FastAPI):
     global embeddings, llm, databases
     try:
         print('START initialize')
